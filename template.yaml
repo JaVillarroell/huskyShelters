@@ -1,0 +1,107 @@
+AWSTemplateFormatVersion : '2010-09-09'
+Transform:
+  - AWS::Serverless-2016-10-31
+Description: Husky Shelters 
+Resources:
+  HuskySheltersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: husky-shelters-table
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+        - AttributeName: Name
+          AttributeType: S
+        - AttributeName: HealthStatus
+          AttributeType: S
+        - AttributeName: Age
+          AttributeType: S
+        - AttributeName: Location
+          AttributeType: S
+        - AttributeName: Adopted
+          AttributeType: S
+        - AttributeName: Email
+          AttributeType: S
+      LocalSecondaryIndexes: 
+        - IndexName: NameLSI
+          KeySchema: 
+            - AttributeName: PK
+              KeyType: HASH
+            - AttributeName: Name
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: HealthStatusLSI
+          KeySchema: 
+            - AttributeName: PK
+              KeyType: HASH
+            - AttributeName: HealthStatus
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: AgeLSI
+          KeySchema: 
+            - AttributeName: PK
+              KeyType: HASH
+            - AttributeName: Age
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: LocationLSI
+          KeySchema: 
+            - AttributeName: PK
+              KeyType: HASH
+            - AttributeName: Location
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+    
+    HuskySheltersBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: huskysheltersawsbucket
+        VersioningConfiguration:
+          Status: Enabled
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: False
+          BlockPublicPolicy: False
+          IgnorePublicAcls: False
+          RestrictPublicBuckets: False
+    
+    DataMigrationLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: dataMigration1
+      Handler: dataMigration1.Migrate
+      Runtime: python3.6
+      CodeUri: package/
+      Policies:
+        - DynamoDBStreamReadPolicy:
+            TableName: !Ref HuskySheltersTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref HuskySheltersTable
+        - S3CrudPolicy:
+            BucketName: !Ref HuskySheltersBucket
+      Environment:
+        Variables:
+          HUSKY_SHELTERS_TABLE: !Ref HuskySheltersTable
+      Events:
+          putTrigger:
+            Type: S3
+            Properties:
+              Bucket: !Ref HuskySheltersBucket
+              Events: 's3:ObjectCreated:*'
+  
+
+
+
