@@ -3,6 +3,56 @@ Transform:
   - AWS::Serverless-2016-10-31
 Description: Husky Shelters 
 Resources:
+  StartUpRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName:  StartUpRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaDynamoDBExecutionRole
+      Policies:
+        - PolicyName: "s3Dynamo"
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+              - s3:DeleteObject
+              - s3:ListBucket
+              - s3:PutObject
+              - s3:GetObject
+              Resource: '*'
+            - Effect: Allow
+              Action: dynamodb:PutItem
+              Resource: '*'
+              
+  DataMigrationLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: dataMigration
+      Handler: dataMigration.Migrate
+      Runtime: python3.6
+      CodeUri: package/
+      Role: !GetAtt StartUpRole.Arn
+      Environment:
+        Variables:
+          HUSKY_SHELTERS_TABLE: !Ref HuskySheltersTable
+      Events:
+        generalShelterTrigger:
+          Type: S3
+          Properties:
+            Bucket: !Ref HuskySheltersBucket
+            Events: s3:ObjectCreated:*
+            
   HuskySheltersTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -27,10 +77,6 @@ Resources:
         - AttributeName: Age
           AttributeType: S
         - AttributeName: Location
-          AttributeType: S
-        - AttributeName: Adopted
-          AttributeType: S
-        - AttributeName: Email
           AttributeType: S
       LocalSecondaryIndexes: 
         - IndexName: NameLSI
@@ -66,41 +112,112 @@ Resources:
           Projection:
             ProjectionType: ALL
     
-    HuskySheltersBucket:
-      Type: AWS::S3::Bucket
-      Properties:
-        BucketName: huskysheltersawsbucket
-        VersioningConfiguration:
-          Status: Enabled
-        PublicAccessBlockConfiguration:
-          BlockPublicAcls: False
-          BlockPublicPolicy: False
-          IgnorePublicAcls: False
-          RestrictPublicBuckets: False
-    
-    DataMigrationLambda:
-    Type: AWS::Serverless::Function
+  HuskySheltersBucket:
+    Type: AWS::S3::Bucket
     Properties:
-      FunctionName: dataMigration1
-      Handler: dataMigration1.Migrate
-      Runtime: python3.6
-      CodeUri: package/
-      Policies:
-        - DynamoDBStreamReadPolicy:
-            TableName: !Ref HuskySheltersTable
-        - DynamoDBCrudPolicy:
-            TableName: !Ref HuskySheltersTable
-        - S3CrudPolicy:
-            BucketName: !Ref HuskySheltersBucket
-      Environment:
-        Variables:
-          HUSKY_SHELTERS_TABLE: !Ref HuskySheltersTable
-      Events:
-          putTrigger:
-            Type: S3
-            Properties:
-              Bucket: !Ref HuskySheltersBucket
-              Events: 's3:ObjectCreated:*'
+      BucketName: huskysheltersawsbucket
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: False
+        BlockPublicPolicy: False
+        IgnorePublicAcls: False
+        RestrictPublicBuckets: False
+  
+  #Mathias
+  # WebBucket:
+  #   Type: 'AWS::S3::Bucket'
+  #   Properties:
+  #     AccessControl: PublicRead
+  #     BucketName: husky-shelters-web-app-awsome
+  #     MetricsConfigurations:
+  #       - Id: EntireBucket
+  #     WebsiteConfiguration:
+  #       IndexDocument: index.html
+  #       ErrorDocument: error.html
+  #       RoutingRules:
+  #         - RoutingRuleCondition:
+  #             HttpErrorCodeReturnedEquals: '404'
+  #             KeyPrefixEquals: out1/
+  #           RedirectRule:
+  #             HostName: ec2-11-22-333-44.compute-1.amazonaws.com
+  #             ReplaceKeyPrefixWith: report-404/
+  #   DeletionPolicy: Retain
+  
+  # SampleBucketPolicy:
+  #   Type: 'AWS::S3::BucketPolicy'
+  #   Properties:
+  #     Bucket: !Ref WebBucket
+  #     PolicyDocument:
+  #       Version: 2012-10-17
+  #       Statement:
+  #         - Action:
+  #             - 's3:GetObject'
+  #           Effect: Allow
+  #           Resource: !Join
+  #             - ''
+  #             - - 'arn:aws:s3:::'
+  #               - !Ref WebBucket
+  #               - /*
+  #           Principal: '*'
+    
+  # GetPets:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     FunctionName: getPets
+  #     Handler: webPets.getPets
+  #     Runtime: python3.8
+  #     CodeUri: package/
+  #     Policies:
+  #       - DynamoDBReadPolicy:
+  #           TableName: !Ref HuskySheltersTable
+  #     Environment:
+  #       Variables:
+  #         HUSKY_SHELTERS_TABLE: !Ref HuskySheltersTable
+  #     Events:
+  #       GetUsers:
+  #         Type: Api
+  #         Properties:
+  #           RestApiId: !Ref HuskySheltersAPI
+  #           Path: "/petsTable"
+  #           Method: GET
+            
+  # HuskySheltersAPI:
+  #   Type: AWS::Serverless::Api
+  #   Properties:
+  #     Name: husky-api
+  #     StageName: prod
+  #     DefinitionBody:
+  #       Fn::Transform:
+  #         Name: AWS::Include
+  #         Parameters:
+  #           Location: swagger.yaml
+        
+  # Cato
+  # UpdatePets:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     FunctionName: updatePet
+  #     Handler: pet.updatePet
+  #     Runtime: python3.6
+  #     CodeUri: package/
+  #     Policies:
+  #       - DynamoDBWritePolicy:
+  #           TableName: !Ref HuskySheltersTable
+  #     Environment:
+  #       Variables:
+  #         HUSKY_SHELTERS_TABLE: !Ref HuskySheltersTable
+  #     Events:
+  #       GetUsers:
+  #         Type: Api
+  #         Properties:
+  #           RestApiId: !Ref HuskySheltersAPI
+  #           Path: "/pets/{petID}"
+  #           Method: PUT
+
+ 
+    
+
   
 
 

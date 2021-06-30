@@ -15,8 +15,6 @@ def Migrate(event, context):
     response = s3.get_object(Bucket=bucket,Key=key)
     data_key = key.split("/")
     folder = data_key[0]
-    pet_pk = data_key[1]
-    image_name = data_key[2]
     if(folder=='CSV'):
         data = response['Body'].read().decode("utf-8")
         pets = data.split("\n")
@@ -35,7 +33,9 @@ def Migrate(event, context):
                 }
                 )
         print("CSV FILE")
-    elif(folder=='images'):
+    elif(folder=='images' and data_key[2] != ""):
+        pet_pk = data_key[1]
+        image_name = data_key[2]
         table.put_item(
             Item={
                 "PK": pet_pk,
