@@ -9,6 +9,22 @@ paths:
         uri:
           Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:getPets/invocations"
         httpMethod: "POST"
+        
+  /pet/{pet_id}:
+    get:
+      summary: This endpoint returns a user given a user id
+      parameters:
+        - name: pet_id
+          in: path
+          required: true
+          description: pet unique id
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        uri:
+          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:getPet/invocations"
+        httpMethod: "POST"
+  
+  
   /pets/deleteImage/{petID}:
     put:
       summary: This endpoint returns the list of pets
