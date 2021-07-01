@@ -31,8 +31,7 @@ def Migrate(event, context):
                     "HealthStatus": data_pet[3],
                     "Age": data_pet[4],
                     "Location": data_pet[5],
-                    "Adopted": data_pet[6],
-                    "Email": data_pet[7]
+                    "Adopted": data_pet[6]
                 }
                 )
         print("CSV FILE")
