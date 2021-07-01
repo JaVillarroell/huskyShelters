@@ -191,6 +191,27 @@ Resources:
             Path: "/petsTable"
             Method: GET
             
+  GetPet:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: getPet
+      Handler: webPets.getPet
+      Runtime: python3.8
+      CodeUri: package/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref HuskySheltersTable
+      Environment:
+        Variables:
+          PETS_TABLE: !Ref HuskySheltersTable
+      Events:
+        GetUsers:
+          Type: Api
+          Properties:
+            RestApiId: !Ref HuskySheltersAPI
+            Path: "/pet/{pet_id}"
+            Method: GET
+            
   HuskySheltersAPI:
     Type: AWS::Serverless::Api
     Properties:
