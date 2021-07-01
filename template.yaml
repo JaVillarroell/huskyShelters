@@ -115,6 +115,7 @@ Resources:
   HuskySheltersBucket:
     Type: AWS::S3::Bucket
     Properties:
+      AccessControl: PublicRead
       BucketName: huskysheltersawsbucket
       VersioningConfiguration:
         Status: Enabled
@@ -125,95 +126,139 @@ Resources:
         RestrictPublicBuckets: False
   
   #Mathias
-  # WebBucket:
-  #   Type: 'AWS::S3::Bucket'
-  #   Properties:
-  #     AccessControl: PublicRead
-  #     BucketName: husky-shelters-web-app-awsome
-  #     MetricsConfigurations:
-  #       - Id: EntireBucket
-  #     WebsiteConfiguration:
-  #       IndexDocument: index.html
-  #       ErrorDocument: error.html
-  #       RoutingRules:
-  #         - RoutingRuleCondition:
-  #             HttpErrorCodeReturnedEquals: '404'
-  #             KeyPrefixEquals: out1/
-  #           RedirectRule:
-  #             HostName: ec2-11-22-333-44.compute-1.amazonaws.com
-  #             ReplaceKeyPrefixWith: report-404/
-  #   DeletionPolicy: Retain
+  WebBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: PublicRead
+      BucketName: husky-shelters-web-app-awsome
+      MetricsConfigurations:
+        - Id: EntireBucket
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
+        RoutingRules:
+          - RoutingRuleCondition:
+              HttpErrorCodeReturnedEquals: '404'
+              KeyPrefixEquals: out1/
+            RedirectRule:
+              HostName: ec2-11-22-333-44.compute-1.amazonaws.com
+              ReplaceKeyPrefixWith: report-404/
+    DeletionPolicy: Retain
   
-  # SampleBucketPolicy:
-  #   Type: 'AWS::S3::BucketPolicy'
-  #   Properties:
-  #     Bucket: !Ref WebBucket
-  #     PolicyDocument:
-  #       Version: 2012-10-17
-  #       Statement:
-  #         - Action:
-  #             - 's3:GetObject'
-  #           Effect: Allow
-  #           Resource: !Join
-  #             - ''
-  #             - - 'arn:aws:s3:::'
-  #               - !Ref WebBucket
-  #               - /*
-  #           Principal: '*'
-    
-  # GetPets:
-  #   Type: AWS::Serverless::Function
-  #   Properties:
-  #     FunctionName: getPets
-  #     Handler: webPets.getPets
-  #     Runtime: python3.8
-  #     CodeUri: package/
-  #     Policies:
-  #       - DynamoDBReadPolicy:
-  #           TableName: !Ref HuskySheltersTable
-  #     Environment:
-  #       Variables:
-  #         HUSKY_SHELTERS_TABLE: !Ref HuskySheltersTable
-  #     Events:
-  #       GetUsers:
-  #         Type: Api
-  #         Properties:
-  #           RestApiId: !Ref HuskySheltersAPI
-  #           Path: "/petsTable"
-  #           Method: GET
+  SampleBucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref WebBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - 's3:GetObject'
+            Effect: Allow
+            Resource: !Join
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref WebBucket
+                - /*
+            Principal: '*'
             
-  # HuskySheltersAPI:
-  #   Type: AWS::Serverless::Api
-  #   Properties:
-  #     Name: husky-api
-  #     StageName: prod
-  #     DefinitionBody:
-  #       Fn::Transform:
-  #         Name: AWS::Include
-  #         Parameters:
-  #           Location: swagger.yaml
+  SampleBucketPolicy2:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref HuskySheltersBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - 's3:GetObject'
+            Effect: Allow
+            Sid: "PublicReadGetObject"
+            Resource: !Join
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref HuskySheltersBucket
+                - /*
+            Principal: '*'
+    
+  GetPets:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: getPets
+      Handler: webPets.getPets
+      Runtime: python3.8
+      CodeUri: package/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref HuskySheltersTable
+      Environment:
+        Variables:
+          HUSKY_SHELTERS_TABLE: !Ref HuskySheltersTable
+      Events:
+        GetUsers:
+          Type: Api
+          Properties:
+            RestApiId: !Ref HuskySheltersAPI
+            Path: "/petsTable"
+            Method: GET
+            
+  HuskySheltersAPI:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: husky-api
+      StageName: prod
+      DefinitionBody:
+        Fn::Transform:
+          Name: AWS::Include
+          Parameters:
+            Location: swagger.yaml
         
-  # Cato
-  # UpdatePets:
-  #   Type: AWS::Serverless::Function
-  #   Properties:
-  #     FunctionName: updatePet
-  #     Handler: pet.updatePet
-  #     Runtime: python3.6
-  #     CodeUri: package/
-  #     Policies:
-  #       - DynamoDBWritePolicy:
-  #           TableName: !Ref HuskySheltersTable
-  #     Environment:
-  #       Variables:
-  #         HUSKY_SHELTERS_TABLE: !Ref HuskySheltersTable
-  #     Events:
-  #       GetUsers:
-  #         Type: Api
-  #         Properties:
-  #           RestApiId: !Ref HuskySheltersAPI
-  #           Path: "/pets/{petID}"
-  #           Method: PUT
+  
+  UpdatePets:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: updatePet
+      Handler: pet.updatePet
+      Runtime: python3.6
+      CodeUri: package/
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref HuskySheltersTable
+        - S3WritePolicy:
+            BucketName: !Ref HuskySheltersBucket
+      Environment:
+        Variables:
+          HUSKY_SHELTERS_TABLE: !Ref HuskySheltersTable
+          HUSKY_SHELTERS_BUCKET: !Ref HuskySheltersBucket
+      Events:
+        GetUsers:
+          Type: Api
+          Properties:
+            RestApiId: !Ref HuskySheltersAPI
+            Path: "/pets/{petID}"
+            Method: PUT
+  DeleteImage:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: deleteImage
+      Handler: pet.deleteImage
+      Runtime: python3.6
+      CodeUri: package/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref HuskySheltersTable
+        - S3CrudPolicy:
+            BucketName: !Ref HuskySheltersBucket
+      Environment:
+        Variables:
+          HUSKY_SHELTERS_TABLE: !Ref HuskySheltersTable
+          HUSKY_SHELTERS_BUCKET: !Ref HuskySheltersBucket
+      Events:
+        GetUsers:
+          Type: Api
+          Properties:
+            RestApiId: !Ref HuskySheltersAPI
+            Path: "/pets/deleteImage/{petID}"
+            Method: PUT
 
  
     

@@ -9,45 +9,74 @@ paths:
         uri:
           Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:getPets/invocations"
         httpMethod: "POST"
-  # /pets/{petID}:
-  #   put:
-  #     summary: This endpoint is for updating a pet in db
-  #     requestBody:
-  #       required: true
-  #       content:
-  #         application/json:
-  #           schema:
-  #             type: object
-  #             properties:
-  #               healt_status:
-  #                 type: string
-  #               age:
-  #                 type: string
-  #               location:
-  #                 type: string
-  #               pictures:
-  #                 type: array
-  #                 properties:
-  #                   items:
-  #                     type: string
-  #     parameters:
-  #       - name: petId
-  #         in: path
-  #         required: true
-  #         description: Pet unique id.
-  #         schema:
-  #           type : integer
-  #           format: int64
-  #           minimum: 1
-  #       - name: type
-  #         in: query
-  #         required: true
-  #         description: Pet type
-  #         schema:
-  #           type: string
-  #     x-amazon-apigateway-integration:
-  #       type: "aws_proxy"
-  #       uri:
-  #         Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:updatePet/invocations"
-  #       httpMethod: "POST"
+  /pets/deleteImage/{petID}:
+    put:
+      summary: This endpoint returns the list of pets
+      parameters:
+        - name: petID
+          in: path
+          required: true
+          description: Pet unique id.
+          schema:
+            type : string
+        - name: imageName
+          in: query
+          required: true
+          description: Pet type
+          schema:
+            type: string
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        uri:
+          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:deleteImage/invocations"
+        httpMethod: "POST"
+        
+  /pets/{petID}:
+    put:
+      summary: This endpoint is for updating a pet in db
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                Adopted:
+                  type: string
+                Age:
+                  type: string
+                Email:
+                  type: string
+                HealthStatus:
+                  type: string
+                LocationPet:
+                  type: string
+                Pictures:
+                  type: array
+                  properties:
+                    items:
+                      type: string
+                PictureNames:
+                  type: array
+                  properties:
+                    items:
+                      type: string
+      parameters:
+        - name: petID
+          in: path
+          required: true
+          description: Pet unique id.
+          schema:
+            type : string
+        - name: SK
+          in: query
+          required: true
+          description: Pet type
+          schema:
+            type: string
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        uri:
+          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:updatePet/invocations"
+        httpMethod: "POST"
   

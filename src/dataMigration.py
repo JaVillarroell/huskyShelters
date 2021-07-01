@@ -20,16 +20,17 @@ def Migrate(event, context):
         pets = data.split("\n")
         for pet in pets:
             data_pet = pet.split(",")
+            folder_name =data_pet[0]
+            s3.put_object(Bucket=bucket, Key=('images/'+folder_name+'/'))
             table.put_item(
                 Item = {
                     "PK": data_pet[0],
                     "SK": data_pet[1],
-                    "Name": data_pet[2],
-                    "HealthStatus": data_pet[3],
-                    "Age": data_pet[4],
-                    "Location": data_pet[5],
-                    "Adopted": data_pet[6],
-                    "Email": data_pet[7]
+                    "HealthStatus": data_pet[2],
+                    "Age": data_pet[3],
+                    "LocationPet": data_pet[4],
+                    "Adopted": data_pet[5],
+                    "Email": data_pet[6]
                 }
                 )
         print("CSV FILE")
