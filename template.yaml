@@ -70,23 +70,13 @@ Resources:
           AttributeType: S
         - AttributeName: SK
           AttributeType: S
-        - AttributeName: Name
-          AttributeType: S
         - AttributeName: HealthStatus
           AttributeType: S
         - AttributeName: Age
           AttributeType: S
-        - AttributeName: Location
+        - AttributeName: LocationPet
           AttributeType: S
       LocalSecondaryIndexes: 
-        - IndexName: NameLSI
-          KeySchema: 
-            - AttributeName: PK
-              KeyType: HASH
-            - AttributeName: Name
-              KeyType: RANGE
-          Projection:
-            ProjectionType: ALL
         - IndexName: HealthStatusLSI
           KeySchema: 
             - AttributeName: PK
@@ -107,7 +97,7 @@ Resources:
           KeySchema: 
             - AttributeName: PK
               KeyType: HASH
-            - AttributeName: Location
+            - AttributeName: LocationPet
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
@@ -258,6 +248,67 @@ Resources:
           Properties:
             RestApiId: !Ref HuskySheltersAPI
             Path: "/pets/deleteImage/{petID}"
+            Method: PUT
+            
+  HuskySheltersTopic:
+    Type: AWS::SNS::Topic 
+    Properties:
+      TopicName: HuskyShelters-Topic
+            
+  ApproveAdoptionSolicit:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: approveAdoption
+      Handler: adoption.approveAdoption
+      Runtime: python3.6
+      CodeUri: package/
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref HuskySheltersTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref HuskySheltersTable
+        - SNSPublishMessagePolicy:
+            TopicName: !GetAtt HuskySheltersTopic.TopicName
+        - SNSCrudPolicy:
+            TopicName: !GetAtt HuskySheltersTopic.TopicName
+      Environment:
+        Variables:
+          HUSKY_SHELTERS_TABLE: !Ref HuskySheltersTable
+          TOPIC_ARN: !Ref HuskySheltersTopic
+      Events:
+        ApproveAdoptionSolicit:
+          Type: Api
+          Properties:
+            RestApiId: !Ref HuskySheltersAPI
+            Path: "/pets/approveAdoption/{adoptID}"
+            Method: PUT
+      
+  SolicitAdoption:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: solicitAdoption
+      Handler: adoption.solicitAdoption
+      Runtime: python3.6
+      CodeUri: package/
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref HuskySheltersTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref HuskySheltersTable
+        - SNSPublishMessagePolicy:
+            TopicName: !GetAtt HuskySheltersTopic.TopicName
+        - SNSCrudPolicy:
+            TopicName: !GetAtt HuskySheltersTopic.TopicName
+      Environment:
+        Variables:
+          HUSKY_SHELTERS_TABLE: !Ref HuskySheltersTable
+          TOPIC_ARN: !Ref HuskySheltersTopic 
+      Events:
+        ApproveAdoptionSolicit:
+          Type: Api
+          Properties:
+            RestApiId: !Ref HuskySheltersAPI
+            Path: "/pets/solicitAdoption/{adoptID}"
             Method: PUT
 
  

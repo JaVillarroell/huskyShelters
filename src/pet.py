@@ -24,19 +24,17 @@ def uploadImages(arrayPictures,pet_id,arrayPictureNames):
         a = a + 1
     # return uris
     
-def updateInfo(pk,sk,health,age,locationPet,adopted,email):
+def updateInfo(pk,sk,health,age,locationPet):
     response = table.update_item(
         Key={
             'PK':pk,
             'SK':sk
         },
-        UpdateExpression="set Age=:a,HealthStatus=:h,LocationPet=:l,Adopted=:d,Email=:e",
+        UpdateExpression="set Age=:a,HealthStatus=:h,LocationPet=:l",
         ExpressionAttributeValues={
             ':a': age,
             ':h': health,
-            ':l': locationPet,
-            ':d': adopted,
-            ':e': email
+            ':l': locationPet
         },
         ReturnValues="UPDATED_NEW"
     )
@@ -49,15 +47,13 @@ def updatePet(event, context):
     pet_id =array_path[-1]
     bodyObject = json.loads(event["body"])
     health_status = bodyObject["HealthStatus"]
-    adopted = bodyObject["Adopted"]
-    email = bodyObject["Email"]
     locationPet = bodyObject["LocationPet"]
     age = bodyObject["Age"]
 
     if bodyObject["Pictures"]:
         # updateUris = uploadImages(bodyObject["pictures"], pet_id)
         uploadImages(bodyObject["Pictures"], pet_id, bodyObject["PictureNames"])
-    updateInfo(pet_id,sk,health_status,age,locationPet,adopted,email)
+    updateInfo(pet_id,sk,health_status,age,locationPet)
     return {
         'statusCode': 200,
         'body': json.dumps("updated movie succeded")

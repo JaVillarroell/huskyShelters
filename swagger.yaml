@@ -41,11 +41,7 @@ paths:
             schema:
               type: object
               properties:
-                Adopted:
-                  type: string
                 Age:
-                  type: string
-                Email:
                   type: string
                 HealthStatus:
                   type: string
@@ -78,5 +74,58 @@ paths:
         type: "aws_proxy"
         uri:
           Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:updatePet/invocations"
+        httpMethod: "POST"
+  
+  /pets/solicitAdoption/{adoptID}:
+    put:
+      summary: This endpoint solicits an adoption (creates a topic with the email and saves it on dynamodb)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                adopted:
+                  type: boolean
+                email:
+                  type: string
+      parameters:
+        - name: adoptID
+          in: path
+          required: true
+          description: Adoption ID
+          schema:
+            type : integer
+            format: int64
+            minimum: 1
+        - name: email
+          in: query
+          required: true
+          description: email for the adoption
+          schema:
+            type: string
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        uri:
+          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:solicitAdoption/invocations"
+        httpMethod: "POST"
+
+# // APPROVAL// #   
+
+  /pets/approveAdoption/{adoptID}:
+    put:
+      summary: This endpoint aproves an adoption by changing Adopted from false to true
+      parameters:
+        - name: adoptID
+          in: path
+          required: true
+          description: Adoption ID
+          schema:
+            type : string
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        uri:
+          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:approveAdoption/invocations"
         httpMethod: "POST"
   
