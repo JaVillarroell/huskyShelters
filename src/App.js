@@ -51,7 +51,7 @@ class App extends Component {
 
 
 	async componentDidMount(){
-		const response = await fetch('https://7oh44m822c.execute-api.us-east-1.amazonaws.com/prod');
+		const response = await fetch('https://b2rqixyao3.execute-api.us-east-1.amazonaws.com/prod/petsTable');
 		const body = await response.json();
 		console.log(body)
 		this.setState({pets:body, isLoading:false})
@@ -59,7 +59,7 @@ class App extends Component {
 
 	async getImages(petPK){
 		this.setState({images:[], isLoading:false})
-		const response = await fetch('https://7oh44m822c.execute-api.us-east-1.amazonaws.com/prod/pet/'+petPK);
+		const response = await fetch('https://b2rqixyao3.execute-api.us-east-1.amazonaws.com/prod/pet/'+petPK);
 		const body = await response.json();
 		console.log(body)
 		this.setState({images:body, isLoading:false})
@@ -79,9 +79,10 @@ class App extends Component {
 		let pets = 
 		allPets.map( pet => 
 			<tr key={pet.PK}>
+				<td>{pet.PK}</td>
 				<td>{pet.Age}</td>
 				<td>{pet.HealthStatus}</td>
-				<td>{pet.Location}</td>
+				<td>{pet.LocationPet}</td>
 				<td><Button className="btn btn-lg btn-succes" onClick={() => this.getImages(pet.PK)}>Images</Button></td>
 			</tr>
 		)
@@ -89,7 +90,7 @@ class App extends Component {
 		let imgs = 
 		allImages.map( pet => 
 			<tr key={pet.PK}>
-				<td><img src={"/"+pet.PK+"/"+pet.SK} alt={"/"+pet.PK+"/"+pet.SK}></img></td>
+				<td><img src={"https://huskysheltersawsbucket50.s3.amazonaws.com/images/"+pet.PK+"/"+pet.SK} alt={"/"+pet.PK+"/"+pet.SK}></img></td>
 			</tr>
 		)
 
