@@ -8,11 +8,13 @@ pets_table = os.environ['HUSKY_SHELTERS_TABLE']
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table(pets_table)
 
-def getPets(event, context):
+def getPetsFull(event, context):
     print(json.dumps({"running": True}))
     print(json.dumps(event))
     
-    response = table.scan()
+    response = table.scan(
+        FilterExpression = Key('SK').eq('Dog') | Key('SK').eq('Cat')
+    )
     
     items = response['Items']
     print(items)
@@ -25,7 +27,7 @@ def getPets(event, context):
         'body': json.dumps(items)
     }
     
-def getPet(event, context):
+def getPetFull(event, context):
     print(json.dumps({"running": True}))
     print(json.dumps(event))
     
