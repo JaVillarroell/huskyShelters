@@ -106,7 +106,7 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       AccessControl: PublicRead
-      BucketName: huskysheltersawsbucket
+      BucketName: huskysheltersawsbucket50
       VersioningConfiguration:
         Status: Enabled
       PublicAccessBlockConfiguration:
@@ -120,7 +120,7 @@ Resources:
     Type: 'AWS::S3::Bucket'
     Properties:
       AccessControl: PublicRead
-      BucketName: husky-shelters-web-app-awsome
+      BucketName: husky-shelters-web-app-awsome50
       MetricsConfigurations:
         - Id: EntireBucket
       WebsiteConfiguration:
@@ -173,7 +173,7 @@ Resources:
   GetPets:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: getPets
+      FunctionName: getPetsFull
       Handler: webPets.getPets
       Runtime: python3.8
       CodeUri: package/
@@ -194,7 +194,7 @@ Resources:
   GetPet:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: getPet
+      FunctionName: getPetFull
       Handler: webPets.getPet
       Runtime: python3.8
       CodeUri: package/
@@ -215,7 +215,7 @@ Resources:
   HuskySheltersAPI:
     Type: AWS::Serverless::Api
     Properties:
-      Name: husky-api
+      Name: husky-shelters-app-api
       StageName: prod
       DefinitionBody:
         Fn::Transform:
