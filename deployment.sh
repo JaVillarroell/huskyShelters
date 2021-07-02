@@ -1,6 +1,6 @@
 
 #!/bin/bash
-DEPLOYMENT_BUCKET="awsomehuskybucket"
+DEPLOYMENT_BUCKET="husky-shelters-app-stack-full"
 STACK_NAME="Husky-Shelters-App"
 
 while getopts ":bdp" OPTION; do

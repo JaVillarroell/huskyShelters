@@ -1,6 +1,7 @@
 import json
 import boto3
 import os
+from boto3.dynamodb.conditions import Key
 
 pets_table = os.environ['HUSKY_SHELTERS_TABLE']
 
